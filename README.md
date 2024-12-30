@@ -44,7 +44,7 @@ python setup.py develop --all
 Finally, install NaVid:
 ```
 cd ..
-git clone jzzhang@navid-vln-ce.git
+git@github.com:jzhzhang/NaVid-VLN-CE.git
 cd NaVid-VLN-CE
 pip install -r requrelments.txt
 ```
