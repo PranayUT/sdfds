@@ -27,10 +27,13 @@ To begin, you'll need to set up the [Habitat VLN-CE](https://github.com/jacobkra
 ```
 conda create -n vlnce_navid python=3.8
 conda activate vlnce_navid
-conda install -c aihabitat -c conda-forge habitat-sim=0.1.7 headless
+conda install -c aihabitat -c conda-forge habitat-sim=0.1.7 headless 
 ```
 
-Next, install [Haibtat-Lab 0.1.7](https://github.com/facebookresearch/habitat-lab/tree/v0.1.7):
+**Another option is to download the habitat-sim package from the [conda website](https://anaconda.org/aihabitat/habitat-sim/0.1.7/download/linux-64/habitat-sim-0.1.7-py3.8_headless_linux_856d4b08c1a2632626bf0d205bf46471a99502b7.tar.bz2) then use the command `conda install name_of_package.tar.bz2` to install the habitat-sim in your conda environment. This method is more stable as it avoids potential network issues or problems associated with direct conda installation.**
+
+
+Next, install [Haibtat-Lab 0.1.7](https://github.com/facebookresearch/habitat-lab/tree/v0.1.7). 
 ```
 mkdir navid_ws | cd navid_ws
 git clone --branch v0.1.7 git@github.com:facebookresearch/habitat-lab.git 
