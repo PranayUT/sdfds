@@ -25,13 +25,19 @@ To begin, you'll need to set up the [Habitat VLN-CE](https://github.com/jacobkra
 ```
 conda create -n vlnce_navid python=3.8
 conda activate vlnce_navid
-conda install -c aihabitat -c conda-forge habitat-sim=0.1.7 headless 
+conda install -c aihabitat -c conda-forge habitat-sim=0.1.7=py3.8_headless_linux_856d4b08c1a2632626bf0d205bf46471a99502b7
 ```
 
-Next, install [Haibtat-Lab 0.1.7](https://github.com/facebookresearch/habitat-lab/tree/v0.1.7):
+**Another option is to download the habitat-sim package from the [conda website](https://anaconda.org/aihabitat/habitat-sim/0.1.7/download/linux-64/habitat-sim-0.1.7-py3.8_headless_linux_856d4b08c1a2632626bf0d205bf46471a99502b7.tar.bz2) then use the command `conda install name_of_package.tar.bz2` to install the habitat-sim in your conda environment. This method is more stable as it avoids potential network issues or problems associated with direct conda installation.**
+
+
+Next, install [Haibtat-Lab 0.1.7](https://github.com/facebookresearch/habitat-lab/tree/v0.1.7). 
 ```
 mkdir navid_ws | cd navid_ws
-git clone --branch v0.1.7 git@github.com:facebookresearch/habitat-lab.git
+git clone --branch v0.1.7 git@github.com:facebookresearch/habitat-lab.git 
+or
+git clone --branch v0.1.7 https://github.com/facebookresearch/habitat-lab.git
+
 cd habitat-lab
 # installs both habitat and habitat_baselines
 python -m pip install -r requirements.txt
@@ -42,14 +48,17 @@ python setup.py develop --all
 Finally, install NaVid:
 ```
 cd ..
-git@github.com:jzhzhang/NaVid-VLN-CE.git
+git clone git@github.com:jzhzhang/NaVid-VLN-CE.git
+or 
+git clone https://github.com/jzhzhang/NaVid-VLN-CE.git
+
 cd NaVid-VLN-CE
-pip install -r requrelments.txt
+pip install -r requirements.txt
 ```
 
 ### 2. Vision-and-Language Data
 
-Follow the instructions in the [VLN-CE Data Section](https://github.com/jacobkrantz/VLN-CE?tab=readme-ov-file#data) to set up the scene dataset and episodes dataset. After completing the data preparation, update the data location in [R2R config file](VLN_CE/habitat_extensions/config/vlnce_task_navid_r2r.yaml) and [RxR config file](VLN_CE/habitat_extensions/config/vlnce_task_navid_rxr.yaml). An example configuration is shown below, please modify the task files to align your data configuration:
+Follow the instructions in the [VLN-CE Data Section](https://github.com/jacobkrantz/VLN-CE?tab=readme-ov-file#data) to set up the scene dataset and episodes dataset. (If the RxR episodes cannot be accessed, you can download them [here](https://1drv.ms/u/c/aa19f644cf9d8afb/ETQ8Co-hGLFMjwd5HckKsvABjWvZ3cbPsWwdzbhmQDoL1g?e=WtO8Lm).) After completing the data preparation, update the data location in [R2R config file](VLN_CE/habitat_extensions/config/vlnce_task_navid_r2r.yaml) and [RxR config file](VLN_CE/habitat_extensions/config/vlnce_task_navid_rxr.yaml). An example configuration is shown below, please modify the task files to align your data configuration:
 ```
 NDTW:
   GT_PATH: data/datasets/R2R_VLNCE_v1-3_preprocessed/{split}/{split}_gt.json.gz 
