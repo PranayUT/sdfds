@@ -106,7 +106,7 @@ CONFIG_PATH="" # task configuration configure, see script for an example
 SAVE_PATH="" #  results
 ```
 
-Our evaluation code supports the reuse of historical visual tokens, enabling the completion of 1839 episodes within 2.5 hours (using 8 A100 GPUs). Run the script with:
+Our evaluation code supports the reuse of historical visual tokens, enabling the completion of 1839 episodes (R2R) within 2.5 hours (using 8 A100 GPUs). Run the script with:
 ```
 bash eval_navid_vlnce.sh
 ```
