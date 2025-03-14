@@ -15,8 +15,6 @@ https://github.com/user-attachments/assets/eb545ef0-516c-4b6a-92a8-225f839843cc
 
 
 
----
-
 ## Prerequisites 
 
 ### 1. Installation
@@ -27,7 +25,7 @@ To begin, you'll need to set up the [Habitat VLN-CE](https://github.com/jacobkra
 ```
 conda create -n vlnce_navid python=3.8
 conda activate vlnce_navid
-conda install -c aihabitat -c conda-forge habitat-sim=0.1.7 headless
+conda install -c aihabitat -c conda-forge habitat-sim=0.1.7 headless 
 ```
 
 Next, install [Haibtat-Lab 0.1.7](https://github.com/facebookresearch/habitat-lab/tree/v0.1.7):
@@ -99,7 +97,7 @@ CONFIG_PATH="" # task configuration configure, see script for an example
 SAVE_PATH="" #  results
 ```
 
-Run the script with:
+Our evaluation code supports the reuse of historical visual tokens, enabling the completion of 1839 episodes within 2.5 hours (using 8 A100 GPUs). Run the script with:
 ```
 bash eval_navid_vlnce.sh
 ```

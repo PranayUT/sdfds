@@ -101,7 +101,8 @@ class NaVid_Agent(Agent):
         
         self.promt_template = "Imagine you are a robot programmed for navigation tasks. You have been given a video of historical observations and an image of the current observation <image>. Your assigned task is: '{}'. Analyze this series of images to decide your next move, which could involve turning left or right by a specific degree or moving forward a certain distance."
 
-
+        self.history_rgb_tensor = None
+        
         self.rgb_list = []
         self.topdown_map_list = []
 
@@ -110,9 +111,22 @@ class NaVid_Agent(Agent):
 
 
     def process_images(self, rgb_list):
-        batch_image = np.asarray(rgb_list)
+        
+        start_img_index = 0
+        
+        if self.history_rgb_tensor is not None:
+            start_img_index = self.history_rgb_tensor.shape[0]
+        
+        batch_image = np.asarray(rgb_list[start_img_index:])
         video = self.image_processor.preprocess(batch_image, return_tensors='pt')['pixel_values'].half().cuda()
-        return [video]
+
+        if self.history_rgb_tensor is None:
+            self.history_rgb_tensor = video
+        else:
+            self.history_rgb_tensor = torch.cat((self.history_rgb_tensor, video), dim = 0)
+        
+
+        return [self.history_rgb_tensor]
 
 
     def predict_inference(self, prompt):
@@ -274,7 +288,7 @@ class NaVid_Agent(Agent):
 
                 imageio.mimsave(output_video_path, self.topdown_map_list)
 
-
+        self.history_rgb_tensor = None
         self.transformation_list = []
         self.rgb_list = []
         self.topdown_map_list = []
