@@ -89,11 +89,11 @@ def observations_to_image(
             agent_rotation=info[map_k]["agent_angle"],
             agent_radius_px=min(td_map.shape[0:2]) // 24,
         )
-        if td_map.shape[1] < td_map.shape[0]:
-            td_map = np.rot90(td_map, 1)
+        # if td_map.shape[1] < td_map.shape[0]:
+        #     td_map = np.rot90(td_map, 1)
 
-        if td_map.shape[0] > td_map.shape[1]:
-            td_map = np.rot90(td_map, 1)
+        # if td_map.shape[0] > td_map.shape[1]:
+        #     td_map = np.rot90(td_map, 1)
 
         # scale top down map to align with rgb view
         old_h, old_w, _ = td_map.shape
@@ -188,11 +188,11 @@ def pano_observations_to_image(
             agent_rotation=info[k]["agent_angle"],
             agent_radius_px=min(top_down_map.shape[0:2]) // 24,
         )
-        if top_down_map.shape[1] < top_down_map.shape[0]:
-            top_down_map = np.rot90(top_down_map, 1)
+        # if top_down_map.shape[1] < top_down_map.shape[0]:
+        #     top_down_map = np.rot90(top_down_map, 1)
 
-        if top_down_map.shape[0] > top_down_map.shape[1]:
-            top_down_map = np.rot90(top_down_map, 1)
+        # if top_down_map.shape[0] > top_down_map.shape[1]:
+        #     top_down_map = np.rot90(top_down_map, 1)
 
         # scale top down map to align with rgb view
         old_h, old_w, _ = top_down_map.shape
@@ -507,11 +507,11 @@ def waypoint_observations_to_image(
             agent_radius_px=int(0.45 / meters_per_px),
         )
 
-        if top_down_map.shape[1] < top_down_map.shape[0]:
-            top_down_map = np.rot90(top_down_map, 1)
+        # if top_down_map.shape[1] < top_down_map.shape[0]:
+        #     top_down_map = np.rot90(top_down_map, 1)
 
-        if top_down_map.shape[0] > top_down_map.shape[1]:
-            top_down_map = np.rot90(top_down_map, 1)
+        # if top_down_map.shape[0] > top_down_map.shape[1]:
+        #     top_down_map = np.rot90(top_down_map, 1)
 
         # scale top down map
         old_h, old_w, _ = top_down_map.shape
@@ -607,11 +607,11 @@ def navigator_video_frame(
         agent_rotation=info[map_k]["agent_angle"],
         agent_radius_px=int(0.45 / info[map_k]["meters_per_px"]),
     )
-    if top_down_map.shape[1] < top_down_map.shape[0]:
-        top_down_map = np.rot90(top_down_map, 1)
+    # if top_down_map.shape[1] < top_down_map.shape[0]:
+    #     top_down_map = np.rot90(top_down_map, 1)
 
-    if top_down_map.shape[0] > top_down_map.shape[1]:
-        top_down_map = np.rot90(top_down_map, 1)
+    # if top_down_map.shape[0] > top_down_map.shape[1]:
+    #     top_down_map = np.rot90(top_down_map, 1)
 
     # scale top down map
     old_h, old_w, _ = top_down_map.shape

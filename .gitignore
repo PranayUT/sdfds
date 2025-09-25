@@ -17,3 +17,5 @@ model_zoo
 
 *.swp
 *.swo
+
+.env

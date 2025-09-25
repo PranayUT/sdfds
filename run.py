@@ -3,7 +3,7 @@ import numpy as np
 import argparse
 from habitat.datasets import make_dataset
 from VLN_CE.vlnce_baselines.config.default import get_config
-from navid_agent import evaluate_agent
+from my_agent import evaluate_agent
 
 
 

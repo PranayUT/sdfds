@@ -331,6 +331,7 @@ class TopDownMapVLNCE(Measure):
         self._map_resolution = config.MAP_RESOLUTION
         self._previous_xy_location = None
         self._top_down_map = None
+        self._cropped_map = None
         self._meters_per_pixel = None
         self.current_node = ""
         with open(self._config.GRAPHS_FILE, "rb") as f:
@@ -364,6 +365,7 @@ class TopDownMapVLNCE(Measure):
             self._map_resolution, self._sim
         )
         self._top_down_map = self.get_original_map()
+        self._cropped_map = self.get_original_map()
         agent_position = self._sim.get_agent_state().position
         scene_id = episode.scene_id.split("/")[-1].split(".")[0]
         a_x, a_y = habitat_maps.to_grid(
@@ -374,47 +376,47 @@ class TopDownMapVLNCE(Measure):
         )
         self._previous_xy_location = (a_y, a_x)
 
-        if self._config.FOG_OF_WAR.DRAW:
-            self._fog_of_war_mask = fog_of_war.reveal_fog_of_war(
-                self._top_down_map,
-                self._fog_of_war_mask,
-                np.array([a_x, a_y]),
-                self.get_polar_angle(),
-                fov=self._config.FOG_OF_WAR.FOV,
-                max_line_len=self._config.FOG_OF_WAR.VISIBILITY_DIST
-                / habitat_maps.calculate_meters_per_pixel(
-                    self._map_resolution, sim=self._sim
-                ),
-            )
+        # if self._config.FOG_OF_WAR.DRAW:
+        #     self._fog_of_war_mask = fog_of_war.reveal_fog_of_war(
+        #         self._top_down_map,
+        #         self._fog_of_war_mask,
+        #         np.array([a_x, a_y]),
+        #         self.get_polar_angle(),
+        #         fov=self._config.FOG_OF_WAR.FOV,
+        #         max_line_len=self._config.FOG_OF_WAR.VISIBILITY_DIST
+        #         / habitat_maps.calculate_meters_per_pixel(
+        #             self._map_resolution, sim=self._sim
+        #         ),
+        #     )
 
-        if self._config.DRAW_FIXED_WAYPOINTS:
-            maps.draw_mp3d_nodes(
-                self._top_down_map,
-                self._sim,
-                episode,
-                self._conn_graphs[scene_id],
-                self._meters_per_pixel,
-            )
+        # if self._config.DRAW_FIXED_WAYPOINTS:
+        #     maps.draw_mp3d_nodes(
+        #         self._top_down_map,
+        #         self._sim,
+        #         episode,
+        #         self._conn_graphs[scene_id],
+        #         self._meters_per_pixel,
+        #     )
 
-        if self._config.DRAW_SHORTEST_PATH:
-            shortest_path_points = self._sim.get_straight_shortest_path_points(
-                agent_position, episode.goals[0].position
-            )
-            maps.draw_straight_shortest_path_points(
-                self._top_down_map,
-                self._sim,
-                self._map_resolution,
-                shortest_path_points,
-            )
+        # if self._config.DRAW_SHORTEST_PATH:
+        #     shortest_path_points = self._sim.get_straight_shortest_path_points(
+        #         agent_position, episode.goals[0].position
+        #     )
+        #     maps.draw_straight_shortest_path_points(
+        #         self._top_down_map,
+        #         self._sim,
+        #         self._map_resolution,
+        #         shortest_path_points,
+        #     )
 
-        if self._config.DRAW_REFERENCE_PATH:
-            maps.draw_reference_path(
-                self._top_down_map,
-                self._sim,
-                episode,
-                self._map_resolution,
-                self._meters_per_pixel,
-            )
+        # if self._config.DRAW_REFERENCE_PATH:
+        #     maps.draw_reference_path(
+        #         self._top_down_map,
+        #         self._sim,
+        #         episode,
+        #         self._map_resolution,
+        #         self._meters_per_pixel,
+        #     )
 
         # draw source and target points last to avoid overlap
         if self._config.DRAW_SOURCE_AND_TARGET:
@@ -438,17 +440,19 @@ class TopDownMapVLNCE(Measure):
             self._top_down_map.shape[0:2],
             self._sim,
         )
-        self.update_metric()
+        self.update_metric(episode)
 
-    def update_metric(self, *args: Any, **kwargs: Any) -> None:
+    def update_metric(self, episode, *args: Any, **kwargs: Any) -> None:
         self._step_count += 1
         (
             house_map,
             map_agent_pos,
-        ) = self.update_map(self._sim.get_agent_state().position)
+            limits,
+        ) = self.update_map(self._sim.get_agent_state().position, episode)
 
         self._metric = {
             "map": house_map,
+            "limits": limits,
             "fog_of_war_mask": self._fog_of_war_mask,
             "agent_map_coord": map_agent_pos,
             "agent_angle": self.get_polar_angle(),
@@ -475,13 +479,31 @@ class TopDownMapVLNCE(Measure):
         z_neg_z_flip = np.pi
         return np.array(phi) + z_neg_z_flip
 
-    def update_map(self, agent_position: List[float]) -> None:
+    def update_map(self, agent_position: List[float], episode) -> None:
         a_x, a_y = habitat_maps.to_grid(
             agent_position[2],
             agent_position[0],
             self._top_down_map.shape[0:2],
             self._sim,
         )
+        t_x, t_y = habitat_maps.to_grid(
+            episode.goals[0].position[2],
+            episode.goals[0].position[0],
+            self._top_down_map.shape[0:2],
+            self._sim,
+        )
+        s_x, s_y = habitat_maps.to_grid(
+            episode.start_position[2],
+            episode.start_position[0],
+            self._top_down_map.shape[0:2],
+            self._sim,
+        )
+        
+        max_y = max(s_y, t_y)
+        max_x = max(s_x, t_x)
+        min_x = min(s_x, t_x)
+        min_y = min(s_y, t_y)
+        
         # Don't draw over the source point
         gradient_color = 15 + min(
             self._step_count * 245 // self._config.MAX_EPISODE_STEPS, 245
@@ -497,19 +519,20 @@ class TopDownMapVLNCE(Measure):
                 ),
                 style="filled",
             )
+            
 
-        if self._config.FOG_OF_WAR.DRAW:
-            self._fog_of_war_mask = fog_of_war.reveal_fog_of_war(
-                self._top_down_map,
-                self._fog_of_war_mask,
-                np.array([a_x, a_y]),
-                self.get_polar_angle(),
-                self._config.FOG_OF_WAR.FOV,
-                max_line_len=self._config.FOG_OF_WAR.VISIBILITY_DIST
-                / habitat_maps.calculate_meters_per_pixel(
-                    self._map_resolution, sim=self._sim
-                ),
-            )
+        # if self._config.FOG_OF_WAR.DRAW:
+        #     self._fog_of_war_mask = fog_of_war.reveal_fog_of_war(
+        #         self._top_down_map,
+        #         self._fog_of_war_mask,
+        #         np.array([a_x, a_y]),
+        #         self.get_polar_angle(),
+        #         self._config.FOG_OF_WAR.FOV,
+        #         max_line_len=self._config.FOG_OF_WAR.VISIBILITY_DIST
+        #         / habitat_maps.calculate_meters_per_pixel(
+        #             self._map_resolution, sim=self._sim
+        #         ),
+        #     )
 
         point_padding = int(0.2 / self._meters_per_pixel)
         prev_nearest_node = self._nearest_node
@@ -518,45 +541,157 @@ class TopDownMapVLNCE(Measure):
             self._nearest_node,
             np.take(agent_position, (0, 2)),
         )
-        if (
-            self._nearest_node != prev_nearest_node
-            and self._config.DRAW_MP3D_AGENT_PATH
-        ):
-            nn_position = self._conn_graphs[self._scene_id].nodes[
-                self._nearest_node
-            ]["position"]
-            (prev_s_x, prev_s_y) = (self.s_x, self.s_y)
-            self.s_x, self.s_y = habitat_maps.to_grid(
-                nn_position[2],
-                nn_position[0],
-                self._top_down_map.shape[0:2],
-                self._sim,
-            )
-            self._top_down_map[
-                self.s_x
-                - int(2.0 / 3.0 * point_padding) : self.s_x
-                + int(2.0 / 3.0 * point_padding)
-                + 1,
-                self.s_y
-                - int(2.0 / 3.0 * point_padding) : self.s_y
-                + int(2.0 / 3.0 * point_padding)
-                + 1,
-            ] = gradient_color
+        # if (
+        #     self._nearest_node != prev_nearest_node
+        #     and self._config.DRAW_MP3D_AGENT_PATH
+        # ):
+        #     nn_position = self._conn_graphs[self._scene_id].nodes[
+        #         self._nearest_node
+        #     ]["position"]
+        #     (prev_s_x, prev_s_y) = (self.s_x, self.s_y)
+        #     self.s_x, self.s_y = habitat_maps.to_grid(
+        #         nn_position[2],
+        #         nn_position[0],
+        #         self._top_down_map.shape[0:2],
+        #         self._sim,
+        #     )
+        #     self._top_down_map[
+        #         self.s_x
+        #         - int(2.0 / 3.0 * point_padding) : self.s_x
+        #         + int(2.0 / 3.0 * point_padding)
+        #         + 1,
+        #         self.s_y
+        #         - int(2.0 / 3.0 * point_padding) : self.s_y
+        #         + int(2.0 / 3.0 * point_padding)
+        #         + 1,
+        #     ] = gradient_color
 
-            maps.drawline(
-                self._top_down_map,
-                (prev_s_y, prev_s_x),
-                (self.s_y, self.s_x),
-                gradient_color,
-                thickness=int(
-                    1.0
-                    / 2.0
-                    * np.round(
-                        self._map_resolution / maps.MAP_THICKNESS_SCALAR
-                    )
-                ),
-            )
+        #     maps.drawline(
+        #         self._top_down_map,
+        #         (prev_s_y, prev_s_x),
+        #         (self.s_y, self.s_x),
+        #         gradient_color,
+        #         thickness=int(
+        #             1.0
+        #             / 2.0
+        #             * np.round(
+        #                 self._map_resolution / maps.MAP_THICKNESS_SCALAR
+        #             )
+        #         ),
+        #     )
 
         self._previous_xy_location = (a_y, a_x)
         map_agent_pos = (a_x, a_y)
-        return self._top_down_map, map_agent_pos
+        buffer = 200
+        crop_min_x = max(min_x - buffer, 0)
+        crop_max_x = min(max_x + buffer, self._top_down_map.shape[0])
+        crop_min_y = max(min_y - buffer, 0)
+        crop_max_y = min(max_y + buffer, self._top_down_map.shape[1])
+        crops = [crop_min_x, crop_max_x, crop_min_y, crop_max_y]
+        return  self._top_down_map, map_agent_pos, crops
+
+
+        a_x, a_y = habitat_maps.to_grid(
+            agent_position[2],
+            agent_position[0],
+            self._top_down_map.shape[0:2],
+            self._sim,
+        )
+        t_x, t_y = habitat_maps.to_grid(
+            episode.goals[0].position[2],
+            episode.goals[0].position[0],
+            self._top_down_map.shape[0:2],
+            self._sim,
+        )
+        
+        max_y = max(a_y, t_y)
+        max_x = max(a_x, t_x)
+        min_x = min(a_x, t_x)
+        min_y = min(a_y, t_y)
+        
+        # Don't draw over the source point
+        gradient_color = 15 + min(
+            self._step_count * 245 // self._config.MAX_EPISODE_STEPS, 245
+        )
+        if self._top_down_map[a_x, a_y] != maps.MAP_SOURCE_POINT_INDICATOR:
+            maps.drawline(
+                self._top_down_map,
+                self._previous_xy_location,
+                (a_y, a_x),
+                gradient_color,
+                thickness=int(
+                    self._map_resolution * 1.4 / maps.MAP_THICKNESS_SCALAR
+                ),
+                style="filled",
+            )
+            
+
+        # if self._config.FOG_OF_WAR.DRAW:
+        #     self._fog_of_war_mask = fog_of_war.reveal_fog_of_war(
+        #         self._top_down_map,
+        #         self._fog_of_war_mask,
+        #         np.array([a_x, a_y]),
+        #         self.get_polar_angle(),
+        #         self._config.FOG_OF_WAR.FOV,
+        #         max_line_len=self._config.FOG_OF_WAR.VISIBILITY_DIST
+        #         / habitat_maps.calculate_meters_per_pixel(
+        #             self._map_resolution, sim=self._sim
+        #         ),
+        #     )
+
+        point_padding = int(0.2 / self._meters_per_pixel)
+        prev_nearest_node = self._nearest_node
+        self._nearest_node = maps.update_nearest_node(
+            self._conn_graphs[self._scene_id],
+            self._nearest_node,
+            np.take(agent_position, (0, 2)),
+        )
+        # if (
+        #     self._nearest_node != prev_nearest_node
+        #     and self._config.DRAW_MP3D_AGENT_PATH
+        # ):
+        #     nn_position = self._conn_graphs[self._scene_id].nodes[
+        #         self._nearest_node
+        #     ]["position"]
+        #     (prev_s_x, prev_s_y) = (self.s_x, self.s_y)
+        #     self.s_x, self.s_y = habitat_maps.to_grid(
+        #         nn_position[2],
+        #         nn_position[0],
+        #         self._top_down_map.shape[0:2],
+        #         self._sim,
+        #     )
+        #     self._top_down_map[
+        #         self.s_x
+        #         - int(2.0 / 3.0 * point_padding) : self.s_x
+        #         + int(2.0 / 3.0 * point_padding)
+        #         + 1,
+        #         self.s_y
+        #         - int(2.0 / 3.0 * point_padding) : self.s_y
+        #         + int(2.0 / 3.0 * point_padding)
+        #         + 1,
+        #     ] = gradient_color
+
+        #     maps.drawline(
+        #         self._top_down_map,
+        #         (prev_s_y, prev_s_x),
+        #         (self.s_y, self.s_x),
+        #         gradient_color,
+        #         thickness=int(
+        #             1.0
+        #             / 2.0
+        #             * np.round(
+        #                 self._map_resolution / maps.MAP_THICKNESS_SCALAR
+        #             )
+        #         ),
+        #     )
+
+        self._previous_xy_location = (a_y, a_x)
+        map_agent_pos = (a_x, a_y)
+        buffer = 20
+        crop_min_x = max(min_x - buffer, 0)
+        crop_max_x = min(max_x + buffer, self._top_down_map.shape[0])
+        crop_min_y = max(min_y - buffer, 0)
+        crop_max_y = min(max_y + buffer, self._top_down_map.shape[1])
+
+        self._cropped_map = self._top_down_map[crop_min_x:crop_max_x, crop_min_y:crop_max_y]
+        return self._cropped_map, map_agent_pos

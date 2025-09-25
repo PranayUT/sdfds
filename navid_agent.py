@@ -26,7 +26,7 @@ def evaluate_agent(config, split_id, dataset, model_path, result_path) -> None:
 
     agent = NaVid_Agent(model_path, result_path)
 
-    num_episodes = len(env.episodes)
+    num_episodes = 2
     
     EARLY_STOP_ROTATION = config.EVAL.EARLY_STOP_ROTATION
     EARLY_STOP_STEPS = config.EVAL.EARLY_STOP_STEPS
