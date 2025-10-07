@@ -11,7 +11,7 @@ from habitat_baselines.rl.ddppo.policy import resnet
 from habitat_baselines.rl.ddppo.policy.resnet_policy import ResNetEncoder
 from torch import Tensor
 
-from vlnce_baselines.common.utils import single_frame_box_shape
+from VLN_CE.vlnce_baselines.common.utils import single_frame_box_shape
 
 
 class VlnResnetDepthEncoder(nn.Module):

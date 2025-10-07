@@ -15,7 +15,7 @@ from habitat.utils.geometry_utils import (
 )
 from habitat.utils.visualizations import maps as habitat_maps
 from habitat.utils.visualizations.utils import images_to_video
-# from habitat.habitat_baselines.common.tensorboard_utils import TensorboardWriter
+from habitat_baselines.common.tensorboard_utils import TensorboardWriter
 from numpy import ndarray
 from torch import Tensor
 
@@ -89,11 +89,11 @@ def observations_to_image(
             agent_rotation=info[map_k]["agent_angle"],
             agent_radius_px=min(td_map.shape[0:2]) // 24,
         )
-        # if td_map.shape[1] < td_map.shape[0]:
-        #     td_map = np.rot90(td_map, 1)
+        if td_map.shape[1] < td_map.shape[0]:
+            td_map = np.rot90(td_map, 1)
 
-        # if td_map.shape[0] > td_map.shape[1]:
-        #     td_map = np.rot90(td_map, 1)
+        if td_map.shape[0] > td_map.shape[1]:
+            td_map = np.rot90(td_map, 1)
 
         # scale top down map to align with rgb view
         old_h, old_w, _ = td_map.shape
@@ -188,11 +188,11 @@ def pano_observations_to_image(
             agent_rotation=info[k]["agent_angle"],
             agent_radius_px=min(top_down_map.shape[0:2]) // 24,
         )
-        # if top_down_map.shape[1] < top_down_map.shape[0]:
-        #     top_down_map = np.rot90(top_down_map, 1)
+        if top_down_map.shape[1] < top_down_map.shape[0]:
+            top_down_map = np.rot90(top_down_map, 1)
 
-        # if top_down_map.shape[0] > top_down_map.shape[1]:
-        #     top_down_map = np.rot90(top_down_map, 1)
+        if top_down_map.shape[0] > top_down_map.shape[1]:
+            top_down_map = np.rot90(top_down_map, 1)
 
         # scale top down map to align with rgb view
         old_h, old_w, _ = top_down_map.shape
@@ -507,11 +507,11 @@ def waypoint_observations_to_image(
             agent_radius_px=int(0.45 / meters_per_px),
         )
 
-        # if top_down_map.shape[1] < top_down_map.shape[0]:
-        #     top_down_map = np.rot90(top_down_map, 1)
+        if top_down_map.shape[1] < top_down_map.shape[0]:
+            top_down_map = np.rot90(top_down_map, 1)
 
-        # if top_down_map.shape[0] > top_down_map.shape[1]:
-        #     top_down_map = np.rot90(top_down_map, 1)
+        if top_down_map.shape[0] > top_down_map.shape[1]:
+            top_down_map = np.rot90(top_down_map, 1)
 
         # scale top down map
         old_h, old_w, _ = top_down_map.shape
@@ -607,11 +607,11 @@ def navigator_video_frame(
         agent_rotation=info[map_k]["agent_angle"],
         agent_radius_px=int(0.45 / info[map_k]["meters_per_px"]),
     )
-    # if top_down_map.shape[1] < top_down_map.shape[0]:
-    #     top_down_map = np.rot90(top_down_map, 1)
+    if top_down_map.shape[1] < top_down_map.shape[0]:
+        top_down_map = np.rot90(top_down_map, 1)
 
-    # if top_down_map.shape[0] > top_down_map.shape[1]:
-    #     top_down_map = np.rot90(top_down_map, 1)
+    if top_down_map.shape[0] > top_down_map.shape[1]:
+        top_down_map = np.rot90(top_down_map, 1)
 
     # scale top down map
     old_h, old_w, _ = top_down_map.shape
@@ -637,47 +637,47 @@ def navigator_video_frame(
     ).astype(np.uint8)
 
 
-# def generate_video(
-#     video_option: List[str],
-#     video_dir: Optional[str],
-#     images: List[ndarray],
-#     episode_id: Union[str, int],
-#     checkpoint_idx: int,
-#     metrics: Dict[str, float],
-#     tb_writer: TensorboardWriter,
-#     fps: int = 10,
-# ) -> None:
-#     """Generate video according to specified information. Using a custom
-#     verion instead of Habitat's that passes FPS to video maker.
+def generate_video(
+    video_option: List[str],
+    video_dir: Optional[str],
+    images: List[ndarray],
+    episode_id: Union[str, int],
+    checkpoint_idx: int,
+    metrics: Dict[str, float],
+    tb_writer: TensorboardWriter,
+    fps: int = 10,
+) -> None:
+    """Generate video according to specified information. Using a custom
+    verion instead of Habitat's that passes FPS to video maker.
 
-#     Args:
-#         video_option: string list of "tensorboard" or "disk" or both.
-#         video_dir: path to target video directory.
-#         images: list of images to be converted to video.
-#         episode_id: episode id for video naming.
-#         checkpoint_idx: checkpoint index for video naming.
-#         metric_name: name of the performance metric, e.g. "spl".
-#         metric_value: value of metric.
-#         tb_writer: tensorboard writer object for uploading video.
-#         fps: fps for generated video.
-#     """
-#     if len(images) < 1:
-#         return
+    Args:
+        video_option: string list of "tensorboard" or "disk" or both.
+        video_dir: path to target video directory.
+        images: list of images to be converted to video.
+        episode_id: episode id for video naming.
+        checkpoint_idx: checkpoint index for video naming.
+        metric_name: name of the performance metric, e.g. "spl".
+        metric_value: value of metric.
+        tb_writer: tensorboard writer object for uploading video.
+        fps: fps for generated video.
+    """
+    if len(images) < 1:
+        return
 
-#     metric_strs = []
-#     for k, v in metrics.items():
-#         metric_strs.append(f"{k}={v:.2f}")
+    metric_strs = []
+    for k, v in metrics.items():
+        metric_strs.append(f"{k}={v:.2f}")
 
-#     video_name = f"episode={episode_id}-ckpt={checkpoint_idx}-" + "-".join(
-#         metric_strs
-#     )
-#     if "disk" in video_option:
-#         assert video_dir is not None
-#         images_to_video(images, video_dir, video_name, fps=fps)
-#     if "tensorboard" in video_option:
-#         tb_writer.add_video_from_np_images(
-#             f"episode{episode_id}", checkpoint_idx, images, fps=fps
-#         )
+    video_name = f"episode={episode_id}-ckpt={checkpoint_idx}-" + "-".join(
+        metric_strs
+    )
+    if "disk" in video_option:
+        assert video_dir is not None
+        images_to_video(images, video_dir, video_name, fps=fps)
+    if "tensorboard" in video_option:
+        tb_writer.add_video_from_np_images(
+            f"episode{episode_id}", checkpoint_idx, images, fps=fps
+        )
 
 
 def compute_heading_to(

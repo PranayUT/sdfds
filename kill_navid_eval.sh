@@ -1,1 +1,1 @@
-ps aux | grep 'run.py' | grep 'navid'   | awk '{print $2}' | xargs kill
+ps aux | grep 'run.py' | awk '{print $2}' | xargs kill

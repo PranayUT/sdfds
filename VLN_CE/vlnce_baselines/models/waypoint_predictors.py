@@ -10,11 +10,11 @@ from habitat_baselines.rl.models.rnn_state_encoder import (
 from habitat_baselines.rl.ppo.policy import Net
 from torch import Tensor, nn
 
-from vlnce_baselines.models.encoders import resnet_encoders
-from vlnce_baselines.models.encoders.instruction_encoder import (
+from VLN_CE.vlnce_baselines.models.encoders import resnet_encoders
+from VLN_CE.vlnce_baselines.models.encoders.instruction_encoder import (
     InstructionEncoder,
 )
-from vlnce_baselines.models.utils import (
+from VLN_CE.vlnce_baselines.models.utils import (
     CustomFixedCategorical,
     DotProductAttention,
     MultiHeadDotProductAttention,

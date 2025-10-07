@@ -124,13 +124,12 @@ def find_best_cached_jump(graph, start_node, goal_node):
                     
     return best_next_node
 
-def evaluate_agent(config, split_id, dataset, model_path, result_path) -> None:
+def evaluate_agent(config, split_id, dataset, result_path) -> None:
     enable_use_of_cache = False
     enable_adding_to_cache = False # should be false if we do not have enable_use_of_cache
 
     env = Env(config.TASK_CONFIG, dataset)
-    result_path = "tmp/navigation_with_caching"
-    agent = MyGPTAgent(model_path, result_path)
+    agent = MyGPTAgent(result_path)
     num_episodes = len(env.episodes) # You can customize this to a low number (e.g. 5) to run on a small subset of examples.
     EARLY_STOP_ROTATION = config.EVAL.EARLY_STOP_ROTATION
     EARLY_STOP_STEPS = config.EVAL.EARLY_STOP_STEPS
@@ -435,7 +434,7 @@ def evaluate_agent(config, split_id, dataset, model_path, result_path) -> None:
 
 
 class MyGPTAgent(Agent):
-    def __init__(self, model_path, result_path, require_map=True):
+    def __init__(self, result_path, require_map=True):
         # print("Initialize MyGPTAgent")
 
         self.result_path = result_path

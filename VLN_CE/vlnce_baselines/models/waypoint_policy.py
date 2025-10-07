@@ -8,12 +8,12 @@ from habitat_baselines.common.baseline_registry import baseline_registry
 from habitat_baselines.rl.ppo.policy import Policy
 from torch import Tensor
 
-from vlnce_baselines.models.utils import (
+from VLN_CE.vlnce_baselines.models.utils import (
     CustomFixedCategorical,
     TruncatedNormal,
     batched_index_select,
 )
-from vlnce_baselines.models.waypoint_predictors import WaypointPredictionNet
+from VLN_CE.vlnce_baselines.models.waypoint_predictors import WaypointPredictionNet
 
 
 @baseline_registry.register_policy
